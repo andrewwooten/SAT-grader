@@ -3,7 +3,9 @@ var express = require("express");
 var app = express();
 var bodyParser = require("body-parser");
 var ejs = require("ejs");
-
+var nodemailer = require("nodemailer");
+var fs = require('fs');
+var pdf = require("html-pdf");
 
 var jsonParser = bodyParser.json()
 app.use(bodyParser.urlencoded({extended: true}));
@@ -12,9 +14,6 @@ app.use(express.static('views'));
 
 fileSystem = require('fs'),
 path = require('path');
-//app.get("/", function(req,res){
-//    //res.render("campgrounds", {campgrounds:campgrounds});
-//})
 app.set("view engine", "ejs");
  
 var mongoClient = require("mongodb").MongoClient;
@@ -45,30 +44,35 @@ var url = "mongodb://andrewwooten:CrimsonRussia17@ds029675.mlab.com:29675/crimso
 
 var tutorid;
 
+var options = { 
+    "border": {
+        "top": "30px",            // default is 0, units: mm, cm, in, px 
+        "bottom": "30px"
+    }
+};
 
 app.get("/diagnostic/?:tutorid", function (request, response) {
   tutorid = request.params["tutorid"];
   var userid = Math.floor(Math.random()*1000000)
-  console.log(tutorid);
   response.render('index', {tutorid : tutorid, userid : userid});
 });
  
  
 app.post('/send_json', jsonParser, function (request, response) {
  
-    //if(!request.body) return response.sendStatus(400);
-    //get data from form
+    // if(!request.body) return response.sendStatus(400);
+    // get data from form
 	// console.log(request.body);
 	var jsonRequest = Object.keys(request.body);
 	// console.log(jsonRequest[0]);
 	var resultArray = JSON.parse(jsonRequest[0]);
-	//resultArray.testInfo.tutorID = "3842";
-	//console.log(resultArray.testInfo.tutorID); 
+	// resultArray.testInfo.tutorID = "3842";
+	// console.log(resultArray.testInfo.tutorID); 
     var databaseStructure = resultArray;
     var copy_of_student_answers = resultArray.answers
-    //var exportAnswers = require("exportFromCSV.js");
+    // var exportAnswers = require("exportFromCSV.js");
     databaseStructure.answers = jsonArray;
-    //console.log(databaseStructure);
+    // console.log(databaseStructure);
  
  
     Object.keys(databaseStructure.answers).forEach(function(key){
@@ -88,7 +92,7 @@ app.post('/send_json', jsonParser, function (request, response) {
     	if(err){
             return console.log(err);
         }
-    	//ctions with mongodb
+    	//actions with mongodb
     	var collection = db.collection("tutor");
     	var id = databaseStructure.testInfo.tutorID;
     	collection.find({ID: id}).toArray(function(err, results){
@@ -118,9 +122,7 @@ app.post('/send_json', jsonParser, function (request, response) {
             db.collection("user04").find(), function(err,result){
                 if(err){
                     console.log(err);
-
                 }
- 
             }
         });
 
@@ -136,9 +138,6 @@ app.post('/send_json', jsonParser, function (request, response) {
 
 app.get('/report/?:userid', function(req, res){
     userid = parseInt(req.params['userid']);
-    console.log("brooo");
-    console.log(userid);
-
     mongoClient.connect(url, function(err,db){
         if (err){
             console.log(err);
@@ -148,12 +147,7 @@ app.get('/report/?:userid', function(req, res){
                     console.log(err);
                 } else {
                 //this prints the results
-                    console.log("recieving from mongo");
-                    console.log(result);
-                    console.log(result.contents);
                     if(result[0]){
-                        console.log(result);
-                        console.log(result[0]);
                         createReport(result[0]);
                     } else {
                         res.render("404");
@@ -168,10 +162,65 @@ app.get('/report/?:userid', function(req, res){
     
 
 
-    function createReport(results){
-        var generatedReport = convert(results);
-        res.render('report', {data:generatedReport});
-    }
+function createReport(results){
+    var email = results.student.email;
+    var generatedReport = convert(results);
+    var compiled = ejs.compile(fs.readFileSync('./views/report.ejs', 'utf8'));
+    var html = compiled({data: generatedReport});
+    pdf.create(html, options).toFile('Report.pdf', function() {
+        var transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                                user: 'geoffreyhershmartin@gmail.com',
+                                pass: 'Hotkey94'
+                            }
+                        });
+
+                        var mailOptions = {
+                            from: 'geoffreyhershmartin@gmail.com',
+                            to: email,
+                            bcc: 'g.martin@crimsoneducation.org',
+                            subject: 'Your SAT Test Result',
+                            text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\n Congratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \nThe Crimson Education Team\n\n',
+                            attachments: [{
+                                filename: 'Report.pdf',
+                                path: 'Report.pdf',
+                                contentType: 'application/pdf'
+                                }], function (err, info) {
+                                        if( err) {
+                                            console.error(err);
+                                            res.send(err);
+                                        }
+                                        else {
+                                            console.log(info);
+                                            res.send(info);
+                                        }
+                                    }
+                        };
+
+                        transporter.sendMail(mailOptions, function(error, info){
+                            if (error) {
+                                console.log(error);
+                            } else {
+                                console.log('Email sent: ' + info.response);
+                            }
+                        });
+    })  
+    res.render('report_site', {data:generatedReport}) // {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    //     else {
+    //         pdf.create(html, options).toFile('./Report.pdf', function(err, res) {
+    //             if (err) {
+    //                 return console.log(err);
+    //             } else {
+    //                 console.log(res)
+    //             }
+    //         });
+    //     } 
+    // });
+}
 
 
 
@@ -182,7 +231,7 @@ app.get("/*", function(req,res){
 });
 
 app.listen(8080, function () {
-  console.log('starting app');
+  console.log('Starting Application');
 })
 
 
@@ -344,12 +393,6 @@ app.listen(8080, function () {
 //     }
 
 // }
-
-
-
-
-var d3 = require('d3');
-
 
 
 function convert(answers){                     
@@ -789,8 +832,6 @@ var wrongAnswers = {
 
 
 getOverallScores(answers);
-
-console.log(wrongAnswers);
 
   var totalReading = scale("Reading", readingCorrect);
   var totalWriting = scale("Writing", writingCorrect);

@@ -176,17 +176,17 @@
 			
 			$.ajax({
 				type: "POST",
-				//url: "http://localhost:8080/send_json",
-				url: "http://crimsontest.org/send_json", 
+				url: "http://localhost:8080/send_json",
+				// url: "http://crimsontest.org/send_json", 
 				dataType: "json",
 				data: json,
 				success: function(html){
 					
 				}
 			});
-			alert("Your results have been sent to your e-mail. Thank you!");
-			//window.location = "http://localhost:8080/report/"+userid.toString();
-			window.location = "http://crimsontest.org/report/"+userid.toString();
+			// alert("Your results have been sent to your e-mail. Thank you!");
+			window.location = "http://localhost:8080/report/"+userid.toString();
+			// window.location = "http://crimsontest.org/report/"+userid.toString();
 			return false;
 		}
 		
