@@ -137,44 +137,33 @@ app.post('/send_json', jsonParser, function (request, response) {
 });
 
 app.get('/report/?:userid', function(req, res){
-    userid = parseInt(req.params['userid']);
-    mongoClient.connect(url, function(err,db){
-        if (err){
-		console.log("3")
-            console.log(err);
-        } else {
-            var answers = db.collection("user04").find({'userID':userid}).toArray(function(err, result){
-                if(err){
-                    console.log(err);
-                } else {
-			console.log(result);
-                //this prints the results
-                    if(result[0]){
-                        createReport(result[0]);
+    res.render('thankyou');
+    setTimeout(function(){
+        userid = parseInt(req.params['userid']);
+        mongoClient.connect(url, function(err,db){
+            if (err){
+            console.log("3")
+                console.log(err);
+            } else {
+                var answers = db.collection("user04").find({'userID':userid}).toArray(function(err, result){
+                    if(err){
+                        console.log(err);
                     } else {
-			var a = 0;
-                        while(!result[0]||a<50){
-				a++;
-				var answers = db.collection("user04").find({'userID':userid}).toArray(function(err, result){
-					if(err){
-					 console.log(err);
-					} else {
-						console.log(result);
-						//this prints the results
-						if(result[0]){
-							createReport(result[0]);
-						}
-					}
-                    		});
-			}
-		    }
-                    db.close();
-                }
-            });
-            
-        }
-    });
-
+                console.log(result);
+                    //this prints the results
+                        if(result[0]){
+                            createReport(result[0]);
+                        } else {
+                            res.render('404');
+                        }
+                        db.close();
+                    }
+                });
+                
+            }
+        });
+    }, 10000); 
+    
     
 
 
