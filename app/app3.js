@@ -152,8 +152,22 @@ app.get('/report/?:userid', function(req, res){
                     if(result[0]){
                         createReport(result[0]);
                     } else {
-                        res.render("404");
-                    }
+			var a = 0;
+                        while(!result[0]||a<50){
+				a++;
+				var answers = db.collection("user04").find({'userID':userid}).toArray(function(err, result){
+					if(err){
+					 console.log(err);
+					} else {
+						console.log(result);
+						//this prints the results
+						if(result[0]){
+							createReport(result[0]);
+						}
+					}
+                    		}
+			}
+		    }
                     db.close();
                 }
             });
