@@ -189,7 +189,7 @@ function createReport(results){
 	var mailOptions = {
                             from: 'geoffreyhershmartin@gmail.com',
                             to: email,
-                            bcc: 'g.martin@crimsoneducation.org',
+                            bcc: 'm.lee@crimsoneducation.org',
                             subject: 'Your SAT Test Result',
                             text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\n Congratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \nThe Crimson Education Team\n\n',
                             attachments: [{
