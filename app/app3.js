@@ -222,7 +222,7 @@ function createReport(results){
 	console.log("hui");
 
      }
-    res.render('report_site', {data:generatedReport}) // {
+    res.render('thankyou') // {
     //     if (err) {
     //         console.log(err);
     //     }
