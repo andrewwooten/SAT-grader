@@ -140,12 +140,14 @@ app.get('/report/?:userid', function(req, res){
     userid = parseInt(req.params['userid']);
     mongoClient.connect(url, function(err,db){
         if (err){
+		console.log("3")
             console.log(err);
         } else {
             var answers = db.collection("user04").find({'userID':userid}).toArray(function(err, result){
                 if(err){
                     console.log(err);
                 } else {
+			console.log(result);
                 //this prints the results
                     if(result[0]){
                         createReport(result[0]);
@@ -167,7 +169,8 @@ function createReport(results){
     var generatedReport = convert(results);
     var compiled = ejs.compile(fs.readFileSync('./views/report.ejs', 'utf8'));
     var html = compiled({data: generatedReport});
-    pdf.create(html, options).toFile('Report.pdf', function() {
+    if (10 > 1) {
+	console.log("inside");
         var transporter = nodemailer.createTransport({
                             service: 'gmail',
                             auth: {
@@ -175,8 +178,14 @@ function createReport(results){
                                 pass: 'Hotkey94'
                             }
                         });
+	console.log("inside");
+	if (3 > 2) {
+	pdf.create(html, options).toFile('Report123.pdf', function(err, res) {
+		if (err) return console.log(err);
+	});}
+	console.log("hui");
 
-                        var mailOptions = {
+	var mailOptions = {
                             from: 'geoffreyhershmartin@gmail.com',
                             to: email,
                             bcc: 'g.martin@crimsoneducation.org',
@@ -188,6 +197,7 @@ function createReport(results){
                                 contentType: 'application/pdf'
                                 }], function (err, info) {
                                         if( err) {
+						console.log("2");
                                             console.error(err);
                                             res.send(err);
                                         }
@@ -197,15 +207,18 @@ function createReport(results){
                                         }
                                     }
                         };
+	console.log("before send");
+			if (4 > 3) {
 
                         transporter.sendMail(mailOptions, function(error, info){
                             if (error) {
+				console.log("1");
                                 console.log(error);
                             } else {
                                 console.log('Email sent: ' + info.response);
                             }
-                        });
-    })  
+                        });}
+     }
     res.render('report_site', {data:generatedReport}) // {
     //     if (err) {
     //         console.log(err);
