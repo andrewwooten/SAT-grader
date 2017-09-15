@@ -183,9 +183,6 @@ function createReport(results){
 	pdf.create(html, options).toFile('Report.pdf', function(err, res) {
 		if (err) return console.log(err);
 		else console.log("report generated");
-	});}
-	console.log("hui");
-
 	var mailOptions = {
                             from: 'geoffreyhershmartin@gmail.com',
                             to: email,
@@ -219,6 +216,11 @@ function createReport(results){
                                 console.log('Email sent: ' + info.response);
                             }
                         });}
+
+
+	});}
+	console.log("hui");
+
      }
     res.render('report_site', {data:generatedReport}) // {
     //     if (err) {
