@@ -182,6 +182,7 @@ function createReport(results){
 	if (3 > 2) {
 	pdf.create(html, options).toFile('Report.pdf', function(err, res) {
 		if (err) return console.log(err);
+		else console.log("report generated");
 	});}
 	console.log("hui");
 
