@@ -165,7 +165,7 @@ app.get('/report/?:userid', function(req, res){
 							createReport(result[0]);
 						}
 					}
-                    		}
+                    		});
 			}
 		    }
                     db.close();
