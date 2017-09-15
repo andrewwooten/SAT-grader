@@ -180,7 +180,7 @@ function createReport(results){
                         });
 	console.log("inside");
 	if (3 > 2) {
-	pdf.create(html, options).toFile('Report123.pdf', function(err, res) {
+	pdf.create(html, options).toFile('Report.pdf', function(err, res) {
 		if (err) return console.log(err);
 	});}
 	console.log("hui");
