@@ -177,8 +177,8 @@ function createReport(results){
         var transporter = nodemailer.createTransport({
                             service: 'gmail',
                             auth: {
-                                user: 'geoffreyhershmartin@gmail.com',
-                                pass: 'Hotkey94'
+                                user: 'crimsontest@crimsoneducation.org',
+                                pass: 'crimsontest17'
                             }
                         });
 	console.log("inside");
@@ -187,13 +187,13 @@ function createReport(results){
 		if (err) return console.log(err);
 		else console.log("report generated");
 	var mailOptions = {
-                            from: 'geoffreyhershmartin@gmail.com',
+                            from: 'crimsontest@crimsoneducation.org',
                             to: email,
                             bcc: 'm.lee@crimsoneducation.org',
                             subject: 'Your SAT Test Result',
                             text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\n Congratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \nThe Crimson Education Team\n\n',
                             attachments: [{
-                                filename: 'Report.pdf',
+                                filename: 'Report_' + results.student.firstName + '_' + results.student.secondName + '.pdf',
                                 path: 'Report.pdf',
                                 contentType: 'application/pdf'
                                 }], function (err, info) {
