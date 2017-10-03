@@ -189,9 +189,9 @@ function createReport(results){
 	var mailOptions = {
                             from: 'crimsontest@crimsoneducation.org',
                             to: email,
-                            bcc: 'm.lee@crimsoneducation.org',
+                            bcc: 'j.lee2@crimsoneducation.org, crimsontest@crimsoneducation.org',
                             subject: 'Your SAT Test Result',
-                            text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\n Congratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \nThe Crimson Education Team\n\n',
+                            text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\nCongratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \n\nThe Crimson Education Team\n\n',
                             attachments: [{
                                 filename: 'Report_' + results.student.firstName + '_' + results.student.secondName + '.pdf',
                                 path: 'Report.pdf',
