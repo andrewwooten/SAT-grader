@@ -15,9 +15,15 @@ app.use(express.static('views'));
 fileSystem = require('fs'),
 path = require('path');
 app.set("view engine", "ejs");
- 
+
+var jwt = require('jsonwebtoken'); 
 var mongoClient = require("mongodb").MongoClient;
-var url = "mongodb://andrewwooten:CrimsonRussia17@ds029675.mlab.com:29675/crimsontest";
+var urldb = "mongodb://andrewwooten:CrimsonRussia17@ds029675.mlab.com:29675/crimsontest";
+var url_for_invite = "localhost:8080/diagnostic/sat="
+var email = "";
+var ecemail = "";
+var name = "";
+var surname = "";
 /*var resultArray = {
     student: {
                         firstName: "Andrew",
@@ -51,15 +57,45 @@ var options = {
     }
 };
 
-app.get("/diagnostic/?:tutorid", function (request, response) {
-  tutorid = request.params["tutorid"];
-  var userid = Math.floor(Math.random()*1000000)
-  response.render('index', {tutorid : tutorid, userid : userid});
+// app.get("/diagnostic/?:tutorid", function (request, response) {
+//   tutorid = request.params["tutorid"];
+//   var userid = Math.floor(Math.random()*1000000)
+//   response.render('index', {tutorid : tutorid, userid : userid});
+// });
+
+app.get("/invite-students/", function (request, response) {
+  //tutorid = request.params["tutorid"];
+  //var userid = Math.floor(Math.random()*1000000)
+  response.render('invite');
 });
- 
- 
+
+app.get('/diagnostic/sat*', function (req, res2) {
+    url = req.url // there is a JWT in a query field in the url
+    url = url.split("=").pop() // extract the JWT, and verify it
+    jwt.verify(url, 'secretpassword!', function(err, decoded){
+      if (err) { // if the user has an invalid JWT, give them a denial page
+        res2.sendFile(__dirname + '/views/denied.html')}
+      else { // otherwise, give them the test page
+        var userid = Math.floor(Math.random()*1000000)
+
+        console.log( 'name from decoded '+ decoded.name);
+        //ecemail = decoded[educorEmail];
+        var emailps = decoded.email.split('@');
+        tojson =  {userid : userid, name: decoded.name, surname: decoded.surname, emailp1: emailps[0], emailp2: emailps[1]};
+        json = JSON.stringify(tojson)//.replace(/\\/g, '\\\\').replace(/\&#34/g, '\\\"');
+        console.log(json);
+        res2.render('index2', {mydata: json});
+
+      //res2.sendFile(__dirname + '/views/register.html')
+
+  }
+    });
+})
+
 app.post('/send_json', jsonParser, function (request, response) {
  
+
+
     // if(!request.body) return response.sendStatus(400);
     // get data from form
 	// console.log(request.body);
@@ -73,6 +109,7 @@ app.post('/send_json', jsonParser, function (request, response) {
     // var exportAnswers = require("exportFromCSV.js");
     databaseStructure.answers = jsonArray;
     // console.log(databaseStructure);
+    //console.log(request.body);
  
  
     Object.keys(databaseStructure.answers).forEach(function(key){
@@ -87,14 +124,18 @@ app.post('/send_json', jsonParser, function (request, response) {
     //console.log(databaseStructure.answers.READING)
 
     //find tutor
-	mongoClient.connect(url, function(err, db){
+    console.log("url = " + urldb)
+	mongoClient.connect(urldb, function(err, db){
 	
     	if(err){
+            console.log("I can't print!")
             return console.log(err);
         }
     	//actions with mongodb
+        console.log("is this here?")
     	var collection = db.collection("tutor");
     	var id = databaseStructure.testInfo.tutorID;
+        console.log("id = " + id)
     	collection.find({ID: id}).toArray(function(err, results){
     		// console.log(results);
     		// console.log(databaseStructure.testInfo.tutor);
@@ -108,7 +149,7 @@ app.post('/send_json', jsonParser, function (request, response) {
 	// console.log(databaseStructure);
 
     //upload results
-    mongoClient.connect(url, function(err, db){
+    mongoClient.connect(urldb, function(err, db){
 	
     	if(err){
     		console.log(err);
@@ -140,7 +181,10 @@ app.get('/report/?:userid', function(req, res){
     res.render('thankyou');
     setTimeout(function(){
         userid = parseInt(req.params['userid']);
-        mongoClient.connect(url, function(err,db){
+        mongoClient.connect(urldb
+
+
+            , function(err,db){
             if (err){
             console.log("3")
                 console.log(err);
@@ -163,15 +207,94 @@ app.get('/report/?:userid', function(req, res){
             }
         });
     }, 10000); 
-    
-    
+    });
 
+
+
+function sendInvite(obj){
+    console.log("I am in");
+    var name1 = obj.name;
+    var surname1 = obj.surname;
+    var email1 = obj.email;
+    var ecemail1 = obj.educorEmail;
+    var ecname = obj.ecname;
+    var ecsurname = obj.ecsurname;
+    console.log("name - "+ name1 + " surname - " + surname1 + " ecemail - " + ecemail1);
+    var token = jwt.sign({
+                       iss: 'crimson',
+                       email: email1,
+                       name: name1,
+                       surname: surname1,
+                       educorEmail: ecemail1
+                       },
+                       'secretpassword!');
+    var tokenurl = url_for_invite + token;
+    console.log("my token url = " + tokenurl);
+    console.log(email1);
+    var transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                                user: 'crimsontest@crimsoneducation.org',
+                                pass: 'crimsontest17'
+                            }
+                        });
+    var mailOptions = {
+                            from: 'crimsontest@crimsoneducation.org',
+                            to: email1,
+                            bcc: ecemail1,
+                            //bcc: 'j.lee2@crimsoneducation.org, crimsontest@crimsoneducation.org',
+                            subject: 'Your SAT Test Invitation',
+                            text: 'Dear ' + name1 + ' ' + surname1 + ', \n\nYour Crimson Education Coordinator, ' + ecname +  ' ' + ecsurname + ', has registered you to take the online Crimson SAT Diagnostic Test. The purpose of this test is to provide prompt feedback on a student’s current level of proficiency with the SAT exam, as well as identify specific strengths and weaknesses in a wide range of related areas of study in order to help plan and prepare your studies.' +
+                            '\n\nAttached is a PDF file of the test questions. In order to take the diagnostic test, you will need to access these questions and input answers accordingly into the online diagnostic test answer sheets. ' +
+                            '\n\n Please click on the link below to access the online answer sheets: ' +
+                            '\n\n' + tokenurl + '\n\n' +
+                            'The test will take 195 minutes (3 hours and 15 minutes) total. This test mimics real SAT test-taking situations as much as possible, and is designed to be taken all at once in one sitting.\n\n' +
+                            'When you have finished all sections of the diagnostic test and clicked the ‘Submit’ button at the end of Section 4, the CrimsonTest website will generate a score report and send it to your email at ' + email +
+                            '\n\nGood Luck!',
+                            attachments: [{
+                                filename: 'sat-practice-test.pdf',
+                                path: 'sat-practice-test-2.pdf',
+                                contentType: 'application/pdf'
+                                }],
+                             function (err, info) {
+                                        if( err) {
+                        console.log("2");
+                                            console.error(err);
+                                            res.send(err);
+                                        }
+                                        else {
+                                            console.log(info);
+                                            res.send(info);
+                                        }
+                                    }
+                        };
+    console.log("before send");
+            if (4 > 3) {
+
+                        transporter.sendMail(mailOptions, function(error, info){
+                            if (error) {
+                console.log("1");
+                                console.log(error);
+                            } else {
+                                console.log('Email sent: ' + info.response);
+                            }
+                        });}
+}    
+
+app.post('/send_invite', jsonParser, function (request, response) { 
+    var jsonRequest = Object.keys(request.body);
+    console.log(request.body);
+    var obj = request.body;
+    sendInvite(obj.student);
+});
 
 function createReport(results){
-    var email = results.student.email;
+    //var email = results.student.email;
     var generatedReport = convert(results);
+    console.log(generatedReport);
     var compiled = ejs.compile(fs.readFileSync('./views/report.ejs', 'utf8'));
     var html = compiled({data: generatedReport});
+    console.log("html =" + html)
     if (10 > 1) {
 	console.log("inside");
         var transporter = nodemailer.createTransport({
@@ -181,19 +304,20 @@ function createReport(results){
                                 pass: 'crimsontest17'
                             }
                         });
-	console.log("inside");
+	console.log("inside1");
 	if (3 > 2) {
-	pdf.create(html, options).toFile('Report.pdf', function(err, res) {
+	pdf.create(html, options).toFile('./Report.pdf', function(err, res) {
 		if (err) return console.log(err);
 		else console.log("report generated");
 	var mailOptions = {
                             from: 'crimsontest@crimsoneducation.org',
                             to: email,
-                            bcc: 'j.lee2@crimsoneducation.org, crimsontest@crimsoneducation.org',
+                            bcc: ecemail,
+                            //bcc: 'j.lee2@crimsoneducation.org, crimsontest@crimsoneducation.org',
                             subject: 'Your SAT Test Result',
-                            text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\nCongratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \n\nThe Crimson Education Team\n\n',
+                            text: 'Dear ' + name + ' ' + surname + ',\n\nCongratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \n\nThe Crimson Education Team\n\n',
                             attachments: [{
-                                filename: 'Report_' + results.student.firstName + '_' + results.student.secondName + '.pdf',
+                                filename: 'Report_' + name + '_' + surname + '.pdf',
                                 path: 'Report.pdf',
                                 contentType: 'application/pdf'
                                 }], function (err, info) {
@@ -225,7 +349,7 @@ function createReport(results){
 	console.log("hui");
 
      }
-    res.render('thankyou') // {
+    //res.render('thankyou') // {
     //     if (err) {
     //         console.log(err);
     //     }
@@ -243,7 +367,6 @@ function createReport(results){
 
 
 
-});
 
 app.get("/*", function(req,res){
     res.render("404");
