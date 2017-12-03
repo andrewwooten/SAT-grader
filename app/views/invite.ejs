@@ -16,7 +16,7 @@
 	<script type="text/javascript">
 
 
-		var url = "localhost:8080/diagnostic/sat="
+		var url = "http://crimsontest.org/diagnostic/sat="
 
 
 		var name = "";
@@ -126,7 +126,7 @@
 			console.log("this is my json from invite: " + json);
 			$.ajax({
 				type: "POST",
-				url: "http://localhost:8080/send_invite",
+				url: "crimsontest.org/send_invite",
 				//url: "http://crimsontest.org/send_invite", 
 				dataType: "json",
 				data: json,

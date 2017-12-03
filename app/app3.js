@@ -19,7 +19,8 @@ app.set("view engine", "ejs");
 var jwt = require('jsonwebtoken'); 
 var mongoClient = require("mongodb").MongoClient;
 var urldb = "mongodb://andrewwooten:CrimsonRussia17@ds029675.mlab.com:29675/crimsontest";
-var url_for_invite = "localhost:8080/diagnostic/sat="
+var url_for_invite = "http://crimsontest.org/diagnostic/sat="
+//var url_for_invite = "localhost:8080/diagnostic/sat="
 var email = "";
 var ecemail = "";
 var name = "";
