@@ -82,6 +82,10 @@ app.get('/diagnostic/sat*', function (req, res2) {
         console.log( 'name from decoded '+ decoded.name);
         //ecemail = decoded[educorEmail];
         var emailps = decoded.email.split('@');
+        email = decoded.email;
+        ecemail = decoded.ecemail;
+        name = decoded.name;
+        surname = decoded.surname;
         tojson =  {userid : userid, name: decoded.name, surname: decoded.surname, emailp1: emailps[0], emailp2: emailps[1]};
         json = JSON.stringify(tojson)//.replace(/\\/g, '\\\\').replace(/\&#34/g, '\\\"');
         console.log(json);
