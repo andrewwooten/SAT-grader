@@ -19,8 +19,8 @@ app.set("view engine", "ejs");
 var jwt = require('jsonwebtoken'); 
 var mongoClient = require("mongodb").MongoClient;
 var urldb = "mongodb://andrewwooten:CrimsonRussia17@ds029675.mlab.com:29675/crimsontest";
-var url_for_invite = "http://crimsontest.org/diagnostic/sat="
-//var url_for_invite = "localhost:8080/diagnostic/sat="
+//var url_for_invite = "http://crimsontest.org/diagnostic/sat="
+var url_for_invite = "localhost:8080/diagnostic/sat="
 var email = "";
 var ecemail = "";
 var name = "";
@@ -58,11 +58,19 @@ var options = {
     }
 };
 
-// app.get("/diagnostic/?:tutorid", function (request, response) {
-//   tutorid = request.params["tutorid"];
-//   var userid = Math.floor(Math.random()*1000000)
-//   response.render('index', {tutorid : tutorid, userid : userid});
-// });
+app.get("/diagnostic/?:tutorid", function (request, response) {
+  tutorid = request.params["tutorid"];
+  if(isNaN(tutorid)) {
+        response.render("404");
+    }
+    else {
+        tutorid = request.params["tutorid"];
+        var userid = Math.floor(Math.random()*1000000)
+        response.render('index', {tutorid : tutorid, userid : userid});
+    }
+  //var userid = Math.floor(Math.random()*1000000)
+  //response.render('index', {tutorid : tutorid, userid : userid});
+});
 
 app.get("/invite-students/", function (request, response) {
   //tutorid = request.params["tutorid"];
@@ -70,32 +78,40 @@ app.get("/invite-students/", function (request, response) {
   response.render('invite');
 });
 
-app.get('/diagnostic/sat*', function (req, res2) {
-    url = req.url // there is a JWT in a query field in the url
-    url = url.split("=").pop() // extract the JWT, and verify it
-    jwt.verify(url, 'secretpassword!', function(err, decoded){
-      if (err) { // if the user has an invalid JWT, give them a denial page
-        res2.sendFile(__dirname + '/views/denied.html')}
-      else { // otherwise, give them the test page
-        var userid = Math.floor(Math.random()*1000000)
+// app.get('/diagnostic/sat*', function (req, res2) {
+//     url = req.url // there is a JWT in a query field in the url
+//     //url = url.split("=").pop(); // extract the JWT, and verify it
+//     if(isNaN(url)) {
+//         res2.render("404");
+//     }
+//     else {
+//         tutorid = request.params["tutorid"];
+//         var userid = Math.floor(Math.random()*1000000)
+//         response.render('index', {tutorid : tutorid, userid : userid});
+//     }
+    // jwt.verify(url, 'secretpassword!', function(err, decoded){
+    //   if (err) { // if the user has an invalid JWT, give them a denial page
+    //     res2.sendFile(__dirname + '/views/denied.html')}
+    //   else { // otherwise, give them the test page
+    //     var userid = Math.floor(Math.random()*1000000)
 
-        console.log( 'name from decoded '+ decoded.name);
-        //ecemail = decoded[educorEmail];
-        var emailps = decoded.email.split('@');
-        email = decoded.email;
-        ecemail = decoded.ecemail;
-        name = decoded.name;
-        surname = decoded.surname;
-        tojson =  {userid : userid, name: decoded.name, surname: decoded.surname, emailp1: emailps[0], emailp2: emailps[1]};
-        json = JSON.stringify(tojson)//.replace(/\\/g, '\\\\').replace(/\&#34/g, '\\\"');
-        console.log(json);
-        res2.render('index2', {mydata: json});
+    //     console.log( 'name from decoded '+ decoded.name);
+    //     //ecemail = decoded[educorEmail];
+    //     var emailps = decoded.email.split('@');
+    //     email = decoded.email;
+    //     ecemail = decoded.ecemail;
+    //     name = decoded.name;
+    //     surname = decoded.surname;
+    //     tojson =  {userid : userid, name: decoded.name, surname: decoded.surname, emailp1: emailps[0], emailp2: emailps[1]};
+    //     json = JSON.stringify(tojson)//.replace(/\\/g, '\\\\').replace(/\&#34/g, '\\\"');
+    //     console.log(json);
+    //     res2.render('index2', {mydata: json});
 
       //res2.sendFile(__dirname + '/views/register.html')
 
-  }
-    });
-})
+  //}
+    //});
+//})
 
 app.post('/send_json', jsonParser, function (request, response) {
  
@@ -129,18 +145,18 @@ app.post('/send_json', jsonParser, function (request, response) {
     //console.log(databaseStructure.answers.READING)
 
     //find tutor
-    console.log("url = " + urldb)
+    //console.log("url = " + urldb)
 	mongoClient.connect(urldb, function(err, db){
 	
     	if(err){
-            console.log("I can't print!")
+            //console.log("I can't print!")
             return console.log(err);
         }
     	//actions with mongodb
-        console.log("is this here?")
+        //console.log("is this here?")
     	var collection = db.collection("tutor");
     	var id = databaseStructure.testInfo.tutorID;
-        console.log("id = " + id)
+        //console.log("id = " + id)
     	collection.find({ID: id}).toArray(function(err, results){
     		// console.log(results);
     		// console.log(databaseStructure.testInfo.tutor);
@@ -224,7 +240,7 @@ function sendInvite(obj){
     var ecemail1 = obj.educorEmail;
     var ecname = obj.ecname;
     var ecsurname = obj.ecsurname;
-    console.log("name - "+ name1 + " surname - " + surname1 + " ecemail - " + ecemail1);
+    //console.log("name - "+ name1 + " surname - " + surname1 + " ecemail - " + ecemail1);
     var token = jwt.sign({
                        iss: 'crimson',
                        email: email1,
@@ -234,8 +250,8 @@ function sendInvite(obj){
                        },
                        'secretpassword!');
     var tokenurl = url_for_invite + token;
-    console.log("my token url = " + tokenurl);
-    console.log(email1);
+    //console.log("my token url = " + tokenurl);
+    //console.log(email1);
     var transporter = nodemailer.createTransport({
                             service: 'gmail',
                             auth: {
@@ -254,7 +270,7 @@ function sendInvite(obj){
                             '\n\n Please click on the link below to access the online answer sheets: ' +
                             '\n\n' + tokenurl + '\n\n' +
                             'The test will take 195 minutes (3 hours and 15 minutes) total. This test mimics real SAT test-taking situations as much as possible, and is designed to be taken all at once in one sitting.\n\n' +
-                            'When you have finished all sections of the diagnostic test and clicked the ‘Submit’ button at the end of Section 4, the CrimsonTest website will generate a score report and send it to your email at ' + email +
+                            'When you have finished all sections of the diagnostic test and clicked the ‘Submit’ button at the end of Section 4, the CrimsonTest website will generate a score report and send it to your email at ' + email1 +
                             '\n\nGood Luck!',
                             attachments: [{
                                 filename: 'sat-practice-test.pdf',
@@ -288,7 +304,7 @@ function sendInvite(obj){
 
 app.post('/send_invite', jsonParser, function (request, response) { 
     var jsonRequest = Object.keys(request.body);
-    console.log(request.body);
+    //console.log(request.body);
     var obj = request.body;
     sendInvite(obj.student);
 });
@@ -296,10 +312,10 @@ app.post('/send_invite', jsonParser, function (request, response) {
 function createReport(results){
     //var email = results.student.email;
     var generatedReport = convert(results);
-    console.log(generatedReport);
+    //console.log(generatedReport);
     var compiled = ejs.compile(fs.readFileSync('./views/report.ejs', 'utf8'));
     var html = compiled({data: generatedReport});
-    console.log("html =" + html)
+    //console.log("html =" + html)
     if (10 > 1) {
 	console.log("inside");
         var transporter = nodemailer.createTransport({
