@@ -61,8 +61,27 @@ var options = {
 app.get("/diagnostic/?:tutorid", function (request, response) {
   tutorid = request.params["tutorid"];
   if(isNaN(tutorid)) {
-        response.render("404");
+    var url = tutorid.split("=").pop(); 
+    jwt.verify(url, 'secretpassword!', function(err, decoded){
+    if (err) { // if the user has an invalid JWT, give them a denial page
+                response.render("404");
+                console.log("wrong token!")}
+      else { // otherwise, give them the test page
+        console.log("preparing the test page");
+        var userid = Math.floor(Math.random()*1000000)
+        console.log( 'name from decoded '+ decoded.name);
+        var emailps = decoded.email.split('@');
+        email = decoded.email;
+        ecemail = decoded.educorEmail;
+        name = decoded.name;
+        surname = decoded.surname;
+        tojson =  {userid : userid, name: decoded.name, surname: decoded.surname, emailp1: emailps[0], emailp2: emailps[1], ecemail: ecemail};
+        json = JSON.stringify(tojson)//.replace(/\\/g, '\\\\').replace(/\&#34/g, '\\\"');
+        console.log(json);
+        response.render('index2', {mydata: json});
     }
+    })
+}
     else {
         tutorid = request.params["tutorid"];
         var userid = Math.floor(Math.random()*1000000)
@@ -89,29 +108,29 @@ app.get("/invite-students/", function (request, response) {
 //         var userid = Math.floor(Math.random()*1000000)
 //         response.render('index', {tutorid : tutorid, userid : userid});
 //     }
-    // jwt.verify(url, 'secretpassword!', function(err, decoded){
-    //   if (err) { // if the user has an invalid JWT, give them a denial page
-    //     res2.sendFile(__dirname + '/views/denied.html')}
-    //   else { // otherwise, give them the test page
-    //     var userid = Math.floor(Math.random()*1000000)
+//     jwt.verify(url, 'secretpassword!', function(err, decoded){
+//       if (err) { // if the user has an invalid JWT, give them a denial page
+//         res2.sendFile(__dirname + '/views/denied.html')}
+//       else { // otherwise, give them the test page
+//         var userid = Math.floor(Math.random()*1000000)
 
-    //     console.log( 'name from decoded '+ decoded.name);
-    //     //ecemail = decoded[educorEmail];
-    //     var emailps = decoded.email.split('@');
-    //     email = decoded.email;
-    //     ecemail = decoded.ecemail;
-    //     name = decoded.name;
-    //     surname = decoded.surname;
-    //     tojson =  {userid : userid, name: decoded.name, surname: decoded.surname, emailp1: emailps[0], emailp2: emailps[1]};
-    //     json = JSON.stringify(tojson)//.replace(/\\/g, '\\\\').replace(/\&#34/g, '\\\"');
-    //     console.log(json);
-    //     res2.render('index2', {mydata: json});
+//         console.log( 'name from decoded '+ decoded.name);
+//         //ecemail = decoded[educorEmail];
+//         var emailps = decoded.email.split('@');
+//         email = decoded.email;
+//         ecemail = decoded.ecemail;
+//         name = decoded.name;
+//         surname = decoded.surname;
+//         tojson =  {userid : userid, name: decoded.name, surname: decoded.surname, emailp1: emailps[0], emailp2: emailps[1]};
+//         json = JSON.stringify(tojson)//.replace(/\\/g, '\\\\').replace(/\&#34/g, '\\\"');
+//         console.log(json);
+//         res2.render('index2', {mydata: json});
 
-      //res2.sendFile(__dirname + '/views/register.html')
+//       res2.sendFile(__dirname + '/views/register.html')
 
-  //}
-    //});
-//})
+//   }
+//     });
+// })
 
 app.post('/send_json', jsonParser, function (request, response) {
  
@@ -198,6 +217,15 @@ app.post('/send_json', jsonParser, function (request, response) {
 
 });
 
+app.get('/thank-you', function(req, res){
+    res.render('thankyou');
+});
+
+app.get('/thank-you-invite', function(req, res){
+    res.render('thankyouinvite');
+});
+
+
 app.get('/report/?:userid', function(req, res){
     res.render('thankyou');
     setTimeout(function(){
@@ -230,7 +258,28 @@ app.get('/report/?:userid', function(req, res){
     }, 10000); 
     });
 
+app.post('/send_invite_json', jsonParser, function (request, response){
 
+    var jsonRequest = Object.keys(request.body);
+    var resultArray1 = JSON.parse(jsonRequest[0]);
+
+    var databaseStructure = resultArray1;
+    var copy_of_student_answers = resultArray1.answers
+    databaseStructure.answers = jsonArray;
+    Object.keys(databaseStructure.answers).forEach(function(key){
+        Object.keys(databaseStructure.answers[key]).forEach(function(key2) {
+            databaseStructure.answers[key][key2].studentAnswer = copy_of_student_answers[key][key2]
+         }
+         );
+    });
+
+    //console.log("resultArray.answers = " + JSON.stringify(resultArray1.answers));
+    //console.log("database structure = " + databaseStructure);
+    //console.log("databaseStructure.answers = " + JSON.stringify(databaseStructure.student.email));
+
+    createReportInvite(databaseStructure);
+
+})
 
 function sendInvite(obj){
     console.log("I am in");
@@ -299,8 +348,9 @@ function sendInvite(obj){
                             } else {
                                 console.log('Email sent: ' + info.response);
                             }
-                        });}
-}    
+                        });
+                    }
+    }  
 
 app.post('/send_invite', jsonParser, function (request, response) { 
     var jsonRequest = Object.keys(request.body);
@@ -309,7 +359,76 @@ app.post('/send_invite', jsonParser, function (request, response) {
     sendInvite(obj.student);
 });
 
+
+
 function createReport(results){
+    console.log("results from createReport = " + results)
+    console.log("type of results from CreateReport = " + typeof results)
+    var email = results.student.email;
+    var generatedReport = convert(results);
+    var compiled = ejs.compile(fs.readFileSync('./views/report.ejs', 'utf8'));
+    var html = compiled({data: generatedReport});
+    if (10 > 1) {
+    console.log("inside");
+        var transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                                user: 'crimsontest@crimsoneducation.org',
+                                pass: 'crimsontest17'
+                            }
+                        });
+    console.log("inside");
+    if (3 > 2) {
+    pdf.create(html, options).toFile('Report.pdf', function(err, res) {
+        if (err) return console.log(err);
+        else console.log("report generated");
+    var mailOptions = {
+                            from: 'crimsontest@crimsoneducation.org',
+                            to: email,
+                            //bcc: 'j.lee2@crimsoneducation.org, crimsontest@crimsoneducation.org',
+                            subject: 'Your SAT Test Result',
+                            text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\nCongratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \n\nThe Crimson Education Team\n\n',
+                            attachments: [{
+                                filename: 'Report_' + results.student.firstName + '_' + results.student.secondName + '.pdf',
+                                path: 'Report.pdf',
+                                contentType: 'application/pdf'
+                                }], function (err, info) {
+                                        if( err) {
+                        console.log("2");
+                                            console.error(err);
+                                            res.send(err);
+                                        }
+                                        else {
+                                            console.log(info);
+                                            res.send(info);
+                                        }
+                                    }
+                        };
+    console.log("before send");
+            if (4 > 3) {
+
+                        transporter.sendMail(mailOptions, function(error, info){
+                            if (error) {
+                console.log("1");
+                                console.log(error);
+                            } else {
+                                console.log('Email sent: ' + info.response);
+                            }
+                        });}
+
+
+    });}
+    console.log("hui");
+
+     }
+}
+
+
+
+function createReportInvite(results){
+    console.log("this is the invite report")
+    console.log("results from createReportInvite" + results);
+    console.log("type of results from CreateReportInvite = " + typeof results)
     //var email = results.student.email;
     var generatedReport = convert(results);
     //console.log(generatedReport);
@@ -332,13 +451,13 @@ function createReport(results){
 		else console.log("report generated");
 	var mailOptions = {
                             from: 'crimsontest@crimsoneducation.org',
-                            to: email,
-                            bcc: ecemail,
+                            to: results.student.email,
+                            bcc: results.student.ecemail,
                             //bcc: 'j.lee2@crimsoneducation.org, crimsontest@crimsoneducation.org',
                             subject: 'Your SAT Test Result',
-                            text: 'Dear ' + name + ' ' + surname + ',\n\nCongratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \n\nThe Crimson Education Team\n\n',
+                            text: 'Dear ' + results.student.firstName + ' ' + results.student.secondName + ',\n\nCongratulations on completing the Crimson Diagnostic SAT Test. Please find your results attached below.\n\nSincerely, \n\nThe Crimson Education Team\n\n',
                             attachments: [{
-                                filename: 'Report_' + name + '_' + surname + '.pdf',
+                                filename: 'Report_' + results.student.firstName + '_' + results.student.secondName + '.pdf',
                                 path: 'Report.pdf',
                                 contentType: 'application/pdf'
                                 }], function (err, info) {
