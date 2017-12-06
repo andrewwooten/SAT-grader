@@ -184,12 +184,12 @@
 			{
 				end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes() + 65, today.getSeconds()).getTime();
 				
-				setTimeout("change(4)", 65 * 60 * 1000);
+				setTimeout("change(1)", 65 * 60 * 1000);
 			}
 			else if (x == 2)
 			{
 				end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes() + 35, today.getSeconds()).getTime();
-				setTimeout("change(2)", 35 * 60 * 1000);
+				setTimeout("change(3)", 35 * 60 * 1000);
 			}
 			else if (x == 3)
 			{
@@ -200,7 +200,7 @@
 			$('#s3q20error').fadeOut(0);
 
 				end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes() + 25, today.getSeconds()).getTime();
-				setTimeout("change(5)", 25 * 60 * 1000);
+				setTimeout("change(4)", 25 * 60 * 1000);
 			}
 			else if (x == 5)
 			{
@@ -216,11 +216,11 @@
 			}
 			else if (x == 1) {
 				end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes() + 10, today.getSeconds()).getTime();
-				setTimeout("change(1)", 10 * 60 * 1000);
+				setTimeout("change(2)", 10 * 60 * 1000);
 			}
 			else if (x == 4){
 				end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes() + 5, today.getSeconds()).getTime();
-				setTimeout("change(3)", 5 * 60 * 1000);
+				setTimeout("change(5)", 5 * 60 * 1000);
 			}
 			countdown(end);
 			setInterval("countdown(end)", 1000);
@@ -301,8 +301,8 @@
 			console.log(json);
 			$.ajax({
 				type: "POST",
-				url: "http://localhost:8080/send_invite_json",
-				//url: "http://crimsontest.org/send_invite_json", 
+				//url: "http://localhost:8080/send_invite_json",
+				url: "http://crimsontest.org/send_invite_json", 
 				dataType: "json",
 				data: json,
 				success: function(html){
@@ -310,7 +310,8 @@
 				}
 			});
 			//alert("Your results will be sent to your e-mail shortly. Thank you!");
-			window.location = "http://localhost:8080/thank-you";
+			//window.location = "http://localhost:8080/thank-you";
+			window.location = "http://crimsontest.org/thank-you";
 			//window.location = "http://crimsontest.org/report/"+userid.toString();
 			return false;
 		}

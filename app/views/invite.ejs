@@ -6,9 +6,9 @@
 	<meta name="author" content=" Made by Keyners">
     <meta http-equiv="X-UA-Compatible" content="IE=9" />
 
-  	<link rel="stylesheet" href="views/css/reset.css">
-	<link rel="stylesheet" href="views/css/styles.css">
-	<link rel="stylesheet" href="views/css/skeleton.css">
+  	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="css/skeleton.css">
 
 
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
@@ -127,14 +127,15 @@
 			$.ajax({
 				type: "POST",
 				url: "http://crimsontest.org/send_invite",
-				//url: "http://crimsontest.org/send_invite", 
+				//url: "http://localhost:8080/send_invite", 
 				dataType: "json",
 				data: json,
 				success: function(html){
 					
 				}
 			});
-			window.location = "http://localhost:8080/thank-you-invite";
+			window.location = "http://crimsontest.org/thank-you-invite";
+			//window.location = "http://localhost:8080/thank-you-invite";
 		};
 		
 	
